@@ -1,0 +1,44 @@
+FROM golang:1.24-alpine
+
+# Install required tools
+RUN apk add --no-cache git bash curl make
+
+# Set working directory
+WORKDIR /workspace
+
+# Copy go modules first for better caching
+COPY go.mod go.sum ./
+RUN go mod download
+
+# Copy source code
+COPY . .
+
+# Build the binary
+RUN make build
+
+# Add binary to PATH
+ENV PATH="/workspace/bin:$PATH"
+
+# Ensure binary is executable and move to PATH for git command
+RUN chmod +x /workspace/bin/git-bits && \
+    cp /workspace/bin/git-bits /usr/local/bin/git-bits
+
+# Configure Git globally for tests
+RUN git config --global user.email "test@example.com" && \
+    git config --global user.name "Test User" && \
+    git config --global init.defaultBranch main
+
+# Create test script with network debugging and bucket setup
+RUN echo '#!/bin/bash' > /test.sh && \
+    echo 'set -e' >> /test.sh && \
+    echo 'echo "=== Network Debugging ==="' >> /test.sh && \
+    echo 'echo "Checking network connectivity..."' >> /test.sh && \
+    echo 'curl -s $AWS_ENDPOINT_URL/_localstack/health && echo "LocalStack health check passed" || echo "Health check failed"' >> /test.sh && \
+    echo 'echo "=== Setting up S3 bucket ==="' >> /test.sh && \
+    echo 'curl -s -X PUT "$AWS_ENDPOINT_URL/$TEST_BUCKET" || echo "Bucket may already exist"' >> /test.sh && \
+    echo 'echo "=== Running Tests ==="' >> /test.sh && \
+    echo 'make test' >> /test.sh && \
+    chmod +x /test.sh
+
+# Default command
+CMD ["/test.sh"]

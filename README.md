@@ -82,17 +82,12 @@ For development and testing, you can use LocalStack to emulate S3 locally:
 
 2. **Run tests:**
    ```bash
-   make test-local
+   make docker-test
    ```
 
-3. **Manual testing:**
+3. **View testing logs :**
    ```bash
-   # Load test environment
-   source .env.test
-   
-   # Initialize git-bits with LocalStack
-   git bits install
-   # Use: test/test/localhost:4566/git-bits-test when prompted
+   make docker-logs
    ```
 
 4. **Stop LocalStack:**
@@ -103,9 +98,8 @@ For development and testing, you can use LocalStack to emulate S3 locally:
 **Available LocalStack commands:**
 - `make localstack-up` - Start LocalStack and create test bucket
 - `make localstack-down` - Stop LocalStack
-- `make localstack-logs` - View LocalStack logs
-- `make test-simple` - Run basic functionality tests
-- `make test-local` - Run full S3 integration tests
+- `make docker-test` - Run full S3 integration tests 
+- `make docker-logs` - View LocalStack logs
 
 ## Modern Architecture
 
@@ -120,5 +114,3 @@ For development and testing, you can use LocalStack to emulate S3 locally:
 - Comprehensive test suite with automated CI/CD
 - Modern Go modules and dependency management
 - Cross-platform builds (Linux, macOS, Windows)
-
-**Note:** All dependencies are actively maintained and security-audited.

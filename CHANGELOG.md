@@ -9,6 +9,13 @@
 - Add Cobra CLI framework for better command structure
 - Modernize all dependencies for better security and performance
 
+### Add LocalStack integration testing with Docker
+- Add Docker Compose setup for LocalStack S3 testing
+- Create containerized test environment
+- Add Makefile targets: docker-test, localstack-up, localstack-down
+- Include comprehensive S3 integration tests
+- Support both local development and CI/CD testing
+
 ## Released
 
 ### 0.3.2

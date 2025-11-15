@@ -16,10 +16,17 @@
 	
 	__Pre-compiled binaries__ are available for 64bit __Windows__,__MacOS__ and __Linux__ on the [release page](https://github.com/nerdalize/git-bits/releases), simply download the binary for your platform and place it in your `PATH`. 
 
-	__building from source__ is recommended for other platforms, this is made easy by the fact that `git-bits` is go-gettable. Simply install the [Go SDK](https://golang.org/doc/install), make sure your `$GOPATH` is setup and `$GOPATH/bin` is added to you `PATH`. Then run the following to install or update:
+	__building from source__ is recommended for other platforms. Simply install the [Go SDK](https://golang.org/doc/install) (Go 1.24 or later). Then run the following to install or update:
 
 	```
-	go get -u github.com/nerdalize/git-bits
+	go install github.com/nerdalize/git-bits@latest
+	```
+
+	__For development:__
+	```bash
+	git clone https://github.com/nerdalize/git-bits
+	cd git-bits
+	make build
 	``` 
 
 3. Verify that the installation succeeded by envoking the Git with the *git-bits* extension, it should show the _git-bits_ subcommands. If it complains with "... is not a git command", make sure the above steps were executed correctly.
@@ -63,5 +70,47 @@ _git-bits_ is build on top of Git, this guide assumes you have basic knowledge o
   ```
   git push
   ```
-  
 
+## Local Testing with LocalStack
+
+For development and testing, you can use LocalStack to emulate S3 locally:
+
+1. **Start LocalStack:**
+   ```bash
+   make localstack-up
+   ```
+
+2. **Run tests:**
+   ```bash
+   make docker-test
+   ```
+
+3. **View testing logs :**
+   ```bash
+   make docker-logs
+   ```
+
+4. **Stop LocalStack:**
+   ```bash
+   make localstack-down
+   ```
+
+**Available LocalStack commands:**
+- `make localstack-up` - Start LocalStack and create test bucket
+- `make localstack-down` - Stop LocalStack
+- `make docker-test` - Run full S3 integration tests 
+- `make docker-logs` - View LocalStack logs
+
+## Modern Architecture
+
+**Updated Dependencies (2024):**
+- **AWS SDK Go v2** - Modern, maintained S3 client with LocalStack support
+- **bbolt** - Maintained fork of BoltDB for local chunk indexing
+- **Cobra CLI** - Modern command-line interface with autocompletion
+- **Go 1.24+** - Latest Go version with improved performance
+
+**Development Features:**
+- Full LocalStack integration for local S3 testing
+- Comprehensive test suite with automated CI/CD
+- Modern Go modules and dependency management
+- Cross-platform builds (Linux, macOS, Windows)

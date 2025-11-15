@@ -20,7 +20,7 @@ import (
 	"time"
 
 	"github.com/VividCortex/ewma"
-	"github.com/boltdb/bolt"
+	bolt "go.etcd.io/bbolt"
 	"github.com/dustin/go-humanize"
 	"github.com/restic/chunker"
 )
@@ -143,8 +143,6 @@ func NewRepository(dir string, output io.Writer) (repo *Repository, err error) {
 			repo,
 			"origin",
 			repo.conf.AWSS3BucketName,
-			repo.conf.AWSAccessKeyID,
-			repo.conf.AWSSecretAccessKey,
 		)
 
 		if err != nil {
@@ -239,14 +237,6 @@ func (repo *Repository) Install(w io.Writer, conf *Conf) (err error) {
 			gconf["bits.aws-s3-bucket-name"] = conf.AWSS3BucketName
 		}
 
-		if conf.AWSAccessKeyID != "" {
-			gconf["bits.aws-access-key-id"] = conf.AWSAccessKeyID
-		}
-
-		if conf.AWSSecretAccessKey != "" {
-			gconf["bits.aws-secret-access-key"] = conf.AWSSecretAccessKey
-		}
-
 		if conf.DeduplicationScope != 0 {
 			gconf["bits.deduplication-scope"] = strconv.FormatUint(conf.DeduplicationScope, 10)
 		}
@@ -259,8 +249,6 @@ func (repo *Repository) Install(w io.Writer, conf *Conf) (err error) {
 			repo,
 			"origin",
 			repo.conf.AWSS3BucketName,
-			repo.conf.AWSAccessKeyID,
-			repo.conf.AWSSecretAccessKey,
 		)
 
 		if err != nil {
@@ -504,7 +492,7 @@ func (repo *Repository) Fetch(r io.Reader, w io.Writer) (err error) {
 		defer rc.Close()
 		n, err := io.Copy(f, rc)
 		if err != nil {
-			return fmt.Errorf("failed to clone chunk '%x' from remote: %v", err)
+			return fmt.Errorf("failed to clone chunk '%x' from remote: %v", k, err)
 		}
 
 		//indicate we fetched a key
@@ -578,7 +566,7 @@ func (repo *Repository) Pull(ref string, w io.Writer) (err error) {
 		err = repo.Git(ctx, nil, w1, "ls-tree", "-r", "-l", ref)
 		if err != nil {
 			//@TODO this will error if the repository is empty (no commits yet)
-			//probaly throw a warning instead
+			//probably throw a warning instead
 			// errCh <- err
 		}
 	}()
@@ -701,7 +689,7 @@ func (repo *Repository) Pull(ref string, w io.Writer) (err error) {
 
 				err = os.Rename(tmpfpath, fpath)
 				if err != nil {
-					return fmt.Errorf("failed to move '%s' to '%s'", tmpfpath, s.Text())
+					return fmt.Errorf("failed to move '%s' to '%s': %v", tmpfpath, s.Text(), err)
 				}
 
 				fmt.Fprintf(w3, "%s\n", fpath)
@@ -709,7 +697,7 @@ func (repo *Repository) Pull(ref string, w io.Writer) (err error) {
 			}()
 
 			if err != nil {
-				errCh <- fmt.Errorf("failed to check file '%s' for header content: %v", err)
+				errCh <- fmt.Errorf("failed to check file '%s' for header content: %v", s.Text(), err)
 			}
 		}
 	}()
@@ -895,7 +883,7 @@ func (repo *Repository) Scan(left, right string, w io.Writer) (err error) {
 //space, pushing these to a remote store happens at a later time (pre-push hook)
 func (repo *Repository) Split(r io.Reader, w io.Writer) (err error) {
 	if repo.conf.DeduplicationScope == 0 {
-		return fmt.Errorf("no deduplication scope configured, please run init", err)
+		return fmt.Errorf("no deduplication scope configured, please run init")
 	}
 
 	//create a buffer that allows us to peek if this is a file that

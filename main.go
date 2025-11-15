@@ -1,36 +1,34 @@
 package main
 
 import (
-	"fmt"
 	"os"
 
-	"github.com/mitchellh/cli"
+	"github.com/spf13/cobra"
 
 	"github.com/nerdalize/git-bits/command"
 )
 
-var (
-	name    = "git-bits"
-	version = "0.0.0"
-)
+var version = "0.0.0"
 
 func main() {
-	c := cli.NewCLI(name, version)
-	c.Args = os.Args[1:]
-	c.Commands = map[string]cli.CommandFactory{
-		"scan":    command.NewScan,
-		"split":   command.NewSplit,
-		"install": command.NewInstall,
-		"fetch":   command.NewFetch,
-		"pull":    command.NewPull,
-		"push":    command.NewPush,
-		"combine": command.NewCombine,
+	rootCmd := &cobra.Command{
+		Use:     "git-bits",
+		Short:   "Git extension for large binary files",
+		Version: version,
 	}
 
-	status, err := c.Run()
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "%s: %s", name, err)
-	}
+	// Add subcommands
+	rootCmd.AddCommand(
+		command.NewScanCmd(),
+		command.NewSplitCmd(),
+		command.NewInstallCmd(),
+		command.NewFetchCmd(),
+		command.NewPullCmd(),
+		command.NewPushCmd(),
+		command.NewCombineCmd(),
+	)
 
-	os.Exit(status)
+	if err := rootCmd.Execute(); err != nil {
+		os.Exit(1)
+	}
 }

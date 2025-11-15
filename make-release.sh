@@ -11,42 +11,8 @@ function print_help {
 		| expand -t 30
 }
 
-function run_install { #install and update dependencies using glide
-	echo "installing..."
-	glide install
-	echo "cleaning up..."
-	rm -fr vendor/github.com/rlmcpherson/s3gof3r/gof3r
-}
-
-function run_test { #run test suite of itself and its dependencies
-	export $(cat secrets.env)
-	terraform apply \
-		-var aws_access_key="${AWS_ACCESS_KEY_ID}" \
-		-var aws_secret_key="${AWS_SECRET_ACCESS_KEY}"
-
-	export TEST_BUCKET=$(terraform output bucket)
-	go test -v bits/*_test.go
-
-	terraform destroy \
-		-var aws_access_key="${AWS_ACCESS_KEY_ID}" \
-		-var aws_secret_key="${AWS_SECRET_ACCESS_KEY}"
-}
-
-function run_build { #build a development version
-	go build -o $GOPATH/bin/git-bits -ldflags "-X main.version=`cat VERSION`"
-}
-
-function run_release { #cross compile new release builds
-	gox -ldflags "-X main.version=`cat VERSION`" -osarch="linux/amd64 windows/amd64 darwin/amd64" -output=./bin/{{.OS}}_{{.Arch}}/git-bits
-}
-
 case $1 in
-	"install") run_install ;;
-	"test") run_test ;;
-	"build") run_build ;;
-	"release") run_release ;;
 
-	#
 	# following commands are probably not portable
 	# and have only been tested on macOS with "github-release"
 	# "zip" and "shasum" programs installed and avaiable in PATH
